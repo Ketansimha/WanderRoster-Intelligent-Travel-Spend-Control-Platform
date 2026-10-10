@@ -1,0 +1,103 @@
+<template>
+    <lightning-card title="Business Outcome & Travel ROI Intelligence" icon-name="custom:custom62">
+        <div slot="actions">
+            <lightning-button label="Log Trip Outcome" variant="brand" icon-name="utility:add" onclick={handleOpenModal}></lightning-button>
+        </div>
+
+        <div class="slds-p-around_medium">
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Loading outcomes..." size="medium"></lightning-spinner>
+            </template>
+
+            <template if:false={isLoading}>
+                <template if:true={hasOutcomes}>
+                    <div class="slds-grid slds-wrap slds-gutters">
+                        <template for:each={outcomes} for:item="item">
+                            <div key={item.outcome.Id} class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-m-bottom_medium">
+                                <div class="slds-card slds-card_boundary slds-p-around_medium">
+                                    <div class="slds-grid slds-grid_align-spread slds-grid_vertical-align-center slds-m-bottom_x-small">
+                                        <div>
+                                            <span class="font-bold slds-text-heading_small">{item.outcome.Name}</span>
+                                            <span class="slds-badge slds-m-left_x-small">{item.outcome.Travel_Request__r.Name}</span>
+                                        </div>
+                                        <div>
+                                            <span class="slds-badge slds-theme_success">{item.outcome.Outcome_Status__c}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="slds-m-bottom_x-small">
+                                        <div class="slds-text-title_caps slds-text-color_weak">Business Objective</div>
+                                        <div class="font-bold">{item.outcome.Business_Objective__c}</div>
+                                    </div>
+
+                                    <div class="slds-box slds-box_x-small slds-theme_shade slds-m-bottom_small">
+                                        <p class="slds-text-body_small">{item.outcome.Outcome_Description__c}</p>
+                                    </div>
+
+                                    <!-- Spend vs Value Comparison -->
+                                    <div class="slds-grid slds-wrap slds-gutters slds-text-align_center slds-m-bottom_small">
+                                        <div class="slds-col slds-size_1-of-3">
+                                            <div class="slds-text-title_caps slds-text-color_weak">Actual Spend</div>
+                                            <div class="font-bold slds-text-heading_small">₹{item.actualSpend}</div>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-3">
+                                            <div class="slds-text-title_caps slds-text-color_weak">Business Value</div>
+                                            <div class="font-bold slds-text-heading_small slds-text-color_success">₹{item.businessValue}</div>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-3">
+                                            <div class="slds-text-title_caps slds-text-color_weak">ROI Multiple</div>
+                                            <div class="font-bold slds-text-heading_small slds-text-color_brand">{item.roiRatio}x</div>
+                                        </div>
+                                    </div>
+
+                                    <template if:true={item.outcome.Follow_up_Required__c}>
+                                        <div class="slds-box slds-box_x-small slds-theme_warning">
+                                            <span class="font-bold">Follow-Up Action Required: </span>
+                                            <span>{item.outcome.Follow_up_Actions__c}</span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                <template if:false={hasOutcomes}>
+                    <div class="slds-illustration slds-illustration_small slds-text-align_center slds-p-around_large">
+                        <p class="slds-text-color_weak">No post-trip business outcomes logged yet. Log an outcome to measure travel spend ROI.</p>
+                    </div>
+                </template>
+            </template>
+        </div>
+
+        <!-- Log Outcome Modal -->
+        <template if:true={isModalOpen}>
+            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open" aria-modal="true">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={handleCloseModal}>
+                            <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
+                        </button>
+                        <h2 class="slds-modal__title slds-hyphenate">Log Post-Trip Business Outcome</h2>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <lightning-combobox label="Completed Travel Request" value={form.Travel_Request__c} options={tripOptions} data-field="Travel_Request__c" onchange={handleInputChange} required class="slds-m-bottom_small"></lightning-combobox>
+                        <lightning-input label="Business Objective" value={form.Business_Objective__c} data-field="Business_Objective__c" onchange={handleInputChange} required class="slds-m-bottom_small"></lightning-input>
+                        <lightning-textarea label="Outcome Description" value={form.Outcome_Description__c} data-field="Outcome_Description__c" onchange={handleInputChange} required class="slds-m-bottom_small"></lightning-textarea>
+                        <lightning-combobox label="Outcome Status" value={form.Outcome_Status__c} options={statusOptions} data-field="Outcome_Status__c" onchange={handleInputChange} required class="slds-m-bottom_small"></lightning-combobox>
+                        <lightning-input type="number" label="Estimated Business Value Generated (₹)" value={form.Business_Value_Estimate__c} data-field="Business_Value_Estimate__c" onchange={handleInputChange} formatter="currency" class="slds-m-bottom_small"></lightning-input>
+                        <lightning-input type="checkbox" label="Follow-up Required?" checked={form.Follow_up_Required__c} data-field="Follow_up_Required__c" onchange={handleInputChange} class="slds-m-bottom_small"></lightning-input>
+                        <template if:true={form.Follow_up_Required__c}>
+                            <lightning-textarea label="Follow-up Actions" value={form.Follow_up_Actions__c} data-field="Follow_up_Actions__c" onchange={handleInputChange}></lightning-textarea>
+                        </template>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <lightning-button label="Cancel" onclick={handleCloseModal} class="slds-m-right_x-small"></lightning-button>
+                        <lightning-button label="Save Outcome" variant="brand" onclick={handleSaveOutcome}></lightning-button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </template>
+    </lightning-card>
+</template>

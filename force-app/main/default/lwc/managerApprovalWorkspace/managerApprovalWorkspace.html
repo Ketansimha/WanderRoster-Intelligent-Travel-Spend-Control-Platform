@@ -1,0 +1,123 @@
+<template>
+    <lightning-card title="Manager Approval Workspace" icon-name="standard:approval">
+        <div slot="actions">
+            <lightning-button-icon icon-name="utility:refresh" alternative-text="Refresh" onclick={loadPendingApprovals}></lightning-button-icon>
+        </div>
+
+        <div class="slds-p-around_medium">
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Loading approvals..." size="medium"></lightning-spinner>
+            </template>
+
+            <template if:false={isLoading}>
+                <template if:true={hasPending}>
+                    <div class="slds-grid slds-wrap slds-gutters">
+                        <template for:each={pendingRequests} for:item="req">
+                            <div key={req.Id} class="slds-col slds-size_1-of-1 slds-m-bottom_medium">
+                                <div class="slds-card slds-card_boundary slds-p-around_medium">
+                                    <!-- Header Row -->
+                                    <div class="slds-grid slds-grid_align-spread slds-grid_vertical-align-center slds-m-bottom_small">
+                                        <div>
+                                            <span class="slds-text-heading_small font-bold">{req.Name}</span>
+                                            <span class="slds-m-left_small slds-badge slds-theme_shade">{req.Employee__r.Name} ({req.Department__c})</span>
+                                        </div>
+                                        <div>
+                                            <span class={req.policyClass}>{req.Policy_Validation_Status__c}</span>
+                                            <span class="slds-badge slds-m-left_x-small">{req.Approval_Status__c}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Trip Route & Dates -->
+                                    <div class="slds-grid slds-wrap slds-gutters slds-m-bottom_small slds-text-body_small">
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12">
+                                            <span class="slds-text-color_weak">Route:</span>
+                                            <div class="font-bold">{req.Origin__c} ➔ {req.Destination__c}</div>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12">
+                                            <span class="slds-text-color_weak">Dates:</span>
+                                            <div class="font-bold">{req.Departure_Date__c} to {req.Return_Date__c}</div>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12">
+                                            <span class="slds-text-color_weak">Purpose:</span>
+                                            <div class="font-bold">{req.Travel_Purpose__c}</div>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_3-of-12">
+                                            <span class="slds-text-color_weak">Estimated Spend:</span>
+                                            <div class="slds-text-heading_small font-bold slds-text-color_brand">₹{req.Total_Estimated_Cost__c}</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Justification -->
+                                    <div class="slds-box slds-box_x-small slds-theme_shade slds-m-bottom_small">
+                                        <span class="font-bold">Business Justification: </span>
+                                        <span>{req.Business_Justification__c}</span>
+                                    </div>
+
+                                    <!-- Budget Impact & Health -->
+                                    <template if:true={req.hasBudget}>
+                                        <div class="slds-grid slds-wrap slds-gutters slds-m-bottom_small slds-text-body_small">
+                                            <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12">
+                                                <span>Budget Pool: <b>{req.Budget__r.Name}</b></span>
+                                            </div>
+                                            <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-text-align_right">
+                                                <span>Remaining Available: <b class="slds-text-color_success">₹{req.Budget__r.Remaining_Budget__c}</b></span>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <!-- Policy Details / Warning banner -->
+                                    <template if:true={req.hasPolicyViolation}>
+                                        <div class="slds-notify slds-notify_alert slds-alert_warning slds-m-bottom_small" role="alert">
+                                            <span class="slds-icon_container slds-icon-utility-warning slds-m-right_x-small">
+                                                <lightning-icon icon-name="utility:warning" size="x-small" variant="inverse"></lightning-icon>
+                                            </span>
+                                            <span>{req.Policy_Violation_Details__c}</span>
+                                        </div>
+                                    </template>
+
+                                    <!-- Action Buttons -->
+                                    <div class="slds-grid slds-grid_align-end slds-m-top_small">
+                                        <lightning-button label="Request Changes" variant="neutral" icon-name="utility:edit" data-id={req.Id} data-action="Changes Requested" onclick={handleOpenActionModal} class="slds-m-right_x-small"></lightning-button>
+                                        <lightning-button label="Reject" variant="destructive" icon-name="utility:close" data-id={req.Id} data-action="Reject" onclick={handleOpenActionModal} class="slds-m-right_x-small"></lightning-button>
+                                        <lightning-button label="Approve Trip" variant="brand" icon-name="utility:check" data-id={req.Id} data-action="Approve" onclick={handleOpenActionModal}></lightning-button>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                <template if:false={hasPending}>
+                    <div class="slds-illustration slds-illustration_small slds-text-align_center slds-p-around_large">
+                        <lightning-icon icon-name="utility:task" size="large" variant="success"></lightning-icon>
+                        <h3 class="slds-text-heading_medium slds-m-top_medium font-bold">All Caught Up!</h3>
+                        <p class="slds-text-color_weak slds-m-top_xx-small">No travel requests currently waiting for your review.</p>
+                    </div>
+                </template>
+            </template>
+        </div>
+
+        <!-- Manager Decision Modal -->
+        <template if:true={isActionModalOpen}>
+            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open" aria-modal="true">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={handleCloseActionModal}>
+                            <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
+                        </button>
+                        <h2 class="slds-modal__title slds-hyphenate">{actionTitle}</h2>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <p class="slds-m-bottom_small">Provide notes or feedback regarding this decision:</p>
+                        <lightning-textarea label="Decision Comments" value={actionComments} onchange={handleCommentChange} placeholder="Enter approval rationale or change requirements..."></lightning-textarea>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <lightning-button label="Cancel" onclick={handleCloseActionModal} class="slds-m-right_x-small"></lightning-button>
+                        <lightning-button label="Confirm Decision" variant="brand" onclick={handleConfirmDecision}></lightning-button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </template>
+    </lightning-card>
+</template>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Receipt_Deadline__c</fullName>
+    <description>Calculated deadline to submit receipt (default 24h from expense date)</description>
+    <externalId>false</externalId>
+    <label>Receipt Deadline</label>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <type>DateTime</type>
+</CustomField>

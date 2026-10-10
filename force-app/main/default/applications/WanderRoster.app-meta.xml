@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomApplication xmlns="http://soap.sforce.com/2006/04/metadata">
+    <brand>
+        <headerColor>#0176D3</headerColor>
+        <shouldOverrideOrgTheme>false</shouldOverrideOrgTheme>
+    </brand>
+    <description>AI-Powered Travel and Expense Intelligence Platform — Every Trip Has a Purpose. Every Rupee Has a Reason.</description>
+    <formFactors>Small</formFactors>
+    <formFactors>Large</formFactors>
+    <isNavAutoTempTabsDisabled>false</isNavAutoTempTabsDisabled>
+    <isNavPersonalizationDisabled>false</isNavPersonalizationDisabled>
+    <isNavTabPersistenceDisabled>false</isNavTabPersistenceDisabled>
+    <isOmniPinnedViewEnabled>false</isOmniPinnedViewEnabled>
+    <label>WanderRoster</label>
+    <navType>Standard</navType>
+    <tabs>Travel_Request_Portal</tabs>
+    <tabs>Manager_Approvals</tabs>
+    <tabs>Finance_Review</tabs>
+    <tabs>Financial_Intelligence_Dashboard</tabs>
+    <tabs>Travel_Outcome_Tracker</tabs>
+    <tabs>Travel_Request__c</tabs>
+    <tabs>Expense_Report__c</tabs>
+    <tabs>Travel_Budget__c</tabs>
+    <uiType>Lightning</uiType>
+</CustomApplication>

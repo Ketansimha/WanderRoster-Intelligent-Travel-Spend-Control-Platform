@@ -1,0 +1,123 @@
+<template>
+    <lightning-card title="Financial Intelligence & Spend Analytics Dashboard" icon-name="standard:dashboard">
+        <div slot="actions">
+            <lightning-button-icon icon-name="utility:refresh" alternative-text="Refresh" onclick={loadMetrics}></lightning-button-icon>
+        </div>
+
+        <div class="slds-p-around_medium">
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Crunching financial metrics..." size="medium"></lightning-spinner>
+            </template>
+
+            <template if:false={isLoading}>
+                <!-- Top Row: Core Financial KPIs -->
+                <div class="slds-grid slds-wrap slds-gutters slds-m-bottom_medium">
+                    <div class="slds-col slds-size_1-of-2 slds-medium-size_3-of-12 slds-m-bottom_small">
+                        <div class="slds-box slds-box_small slds-theme_shade slds-text-align_center">
+                            <div class="slds-text-title_caps slds-text-color_weak">Allocated Budget</div>
+                            <div class="slds-text-heading_medium font-bold">₹{metrics.totalAllocatedBudget}</div>
+                        </div>
+                    </div>
+                    <div class="slds-col slds-size_1-of-2 slds-medium-size_3-of-12 slds-m-bottom_small">
+                        <div class="slds-box slds-box_small slds-theme_shade slds-text-align_center">
+                            <div class="slds-text-title_caps slds-text-color_weak">Approved Commitments</div>
+                            <div class="slds-text-heading_medium font-bold slds-text-color_default">₹{metrics.approvedCommitments}</div>
+                        </div>
+                    </div>
+                    <div class="slds-col slds-size_1-of-2 slds-medium-size_3-of-12 slds-m-bottom_small">
+                        <div class="slds-box slds-box_small slds-theme_shade slds-text-align_center">
+                            <div class="slds-text-title_caps slds-text-color_weak">Actual Recorded Expenses</div>
+                            <div class="slds-text-heading_medium font-bold slds-text-color_brand">₹{metrics.actualRecordedExpenses}</div>
+                        </div>
+                    </div>
+                    <div class="slds-col slds-size_1-of-2 slds-medium-size_3-of-12 slds-m-bottom_small">
+                        <div class="slds-box slds-box_small slds-theme_shade slds-text-align_center">
+                            <div class="slds-text-title_caps slds-text-color_weak">Remaining Budget</div>
+                            <div class="slds-text-heading_medium font-bold slds-text-color_success">₹{metrics.totalRemainingBudget}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Second Row: Decision Intelligence & Savings Breakdown -->
+                <div class="slds-grid slds-wrap slds-gutters slds-m-bottom_medium">
+                    <!-- Potential vs Realized Savings -->
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-m-bottom_small">
+                        <div class="slds-card slds-card_boundary slds-p-around_medium">
+                            <h3 class="slds-text-title_bold slds-m-bottom_small">Decision Intelligence: Spend Savings Realization</h3>
+                            <div class="slds-grid slds-gutters slds-text-align_center">
+                                <div class="slds-col slds-size_1-of-2">
+                                    <div class="slds-box slds-box_x-small" style="background-color: #f3f8fd; border-color: #0176d3;">
+                                        <div class="slds-text-title_caps slds-text-color_weak">Potential Savings</div>
+                                        <div class="slds-text-heading_small font-bold slds-text-color_brand">₹{metrics.potentialSavings}</div>
+                                        <p class="slds-text-body_x-small slds-m-top_xx-small">Identified via AI optimization</p>
+                                    </div>
+                                </div>
+                                <div class="slds-col slds-size_1-of-2">
+                                    <div class="slds-box slds-box_x-small" style="background-color: #eefbee; border-color: #4bca81;">
+                                        <div class="slds-text-title_caps slds-text-color_success">Realized Savings</div>
+                                        <div class="slds-text-heading_small font-bold slds-text-color_success">₹{metrics.realizedSavings}</div>
+                                        <p class="slds-text-body_x-small slds-m-top_xx-small">Captured through finance audits</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Risk & Compliance Health -->
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-m-bottom_small">
+                        <div class="slds-card slds-card_boundary slds-p-around_medium">
+                            <h3 class="slds-text-title_bold slds-m-bottom_small">Receipt & Policy Health Monitoring</h3>
+                            <div class="slds-grid slds-gutters slds-text-align_center">
+                                <div class="slds-col slds-size_1-of-3">
+                                    <div class="slds-text-title_caps slds-text-color_weak">24h Compliance</div>
+                                    <div class="slds-text-heading_small font-bold slds-text-color_success">{metrics.receiptComplianceRate}%</div>
+                                </div>
+                                <div class="slds-col slds-size_1-of-3">
+                                    <div class="slds-text-title_caps slds-text-color_weak">Overdue Receipts</div>
+                                    <div class="slds-text-heading_small font-bold slds-text-color_error">{metrics.overdueReceiptCount}</div>
+                                </div>
+                                <div class="slds-col slds-size_1-of-3">
+                                    <div class="slds-text-title_caps slds-text-color_weak">Flagged Review</div>
+                                    <div class="slds-text-heading_small font-bold slds-text-color_warning">{metrics.flaggedReviewCount}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Third Row: Department Budget Allocation & Utilization Table -->
+                <div class="slds-card slds-card_boundary slds-p-around_medium">
+                    <h3 class="slds-text-heading_small font-bold slds-m-bottom_small">Departmental Budget Allocation & Spend Forecast</h3>
+                    <div class="slds-table_header-fixed_container slds-scrollable_x">
+                        <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped">
+                            <thead>
+                                <tr class="slds-line-height_reset">
+                                    <th scope="col">Department</th>
+                                    <th scope="col">Allocated Budget</th>
+                                    <th scope="col">Approved Commitments</th>
+                                    <th scope="col">Recorded Expenses</th>
+                                    <th scope="col">Remaining Budget</th>
+                                    <th scope="col">Utilization %</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={departmentBreakdown} for:item="dept">
+                                    <tr key={dept.department}>
+                                        <td class="font-bold">{dept.department}</td>
+                                        <td>₹{dept.allocated}</td>
+                                        <td>₹{dept.committed}</td>
+                                        <td>₹{dept.recorded}</td>
+                                        <td class="font-bold slds-text-color_success">₹{dept.remaining}</td>
+                                        <td>
+                                            <span class="slds-badge">{dept.utilizationPct}%</span>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+</template>

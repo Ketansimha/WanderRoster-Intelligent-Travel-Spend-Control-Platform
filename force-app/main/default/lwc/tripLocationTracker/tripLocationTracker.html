@@ -1,0 +1,46 @@
+<template>
+    <lightning-card title="Trip Progress & Voluntary Check-In" icon-name="custom:custom78">
+        <div class="slds-p-around_medium">
+            <!-- Privacy Notice Banner -->
+            <div class="slds-box slds-box_x-small slds-theme_shade slds-m-bottom_small">
+                <p class="slds-text-body_x-small slds-text-color_weak">
+                    <b>Privacy Notice:</b> Location updates are entirely voluntary, consent-based, and recorded only for duty of care during active corporate travel.
+                </p>
+            </div>
+
+            <!-- Check-in form -->
+            <div class="slds-grid slds-wrap slds-gutters">
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-m-bottom_small">
+                    <lightning-input label="Current City / Location" value={city} onchange={handleCityChange} placeholder="e.g. Kempegowda Airport, Bengaluru"></lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-m-bottom_small">
+                    <lightning-combobox label="Trip Progress Status" value={progressStatus} options={progressOptions} onchange={handleStatusChange}></lightning-combobox>
+                </div>
+                <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                    <lightning-input type="checkbox" label="I explicitly consent to sharing this travel milestone check-in" checked={consentGiven} onchange={handleConsentChange}></lightning-input>
+                </div>
+                <div class="slds-col slds-size_1-of-1 slds-m-bottom_medium">
+                    <lightning-button label="Submit Check-In" variant="brand" icon-name="utility:check" onclick={handleSubmitCheckIn} disabled={isSubmitDisabled}></lightning-button>
+                </div>
+            </div>
+
+            <!-- Check-In History -->
+            <template if:true={hasHistory}>
+                <h4 class="slds-text-title_bold slds-m-bottom_x-small">Trip Milestone Timeline</h4>
+                <div class="slds-timeline">
+                    <template for:each={checkInHistory} for:item="loc">
+                        <div key={loc.Id} class="slds-box slds-box_x-small slds-m-bottom_xx-small slds-theme_default">
+                            <div class="slds-grid slds-grid_align-spread">
+                                <span class="font-bold">{loc.Location_City__c}</span>
+                                <span class="slds-badge">{loc.Trip_Progress_Status__c}</span>
+                            </div>
+                            <div class="slds-text-body_x-small slds-text-color_weak slds-m-top_xx-small">
+                                Recorded at: {loc.Location_Timestamp__c} ({loc.Update_Source__c})
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </template>
+        </div>
+    </lightning-card>
+</template>

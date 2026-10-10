@@ -1,0 +1,201 @@
+<template>
+    <lightning-card title="Employee Travel Request Portal" icon-name="custom:custom20">
+        <div slot="actions">
+            <lightning-button label="New Travel Request" variant="brand" icon-name="utility:add" onclick={handleOpenModal}></lightning-button>
+        </div>
+
+        <div class="slds-p-around_medium">
+            <!-- Summary Banner -->
+            <div class="slds-box slds-theme_shade slds-m-bottom_medium slds-grid slds-wrap slds-grid_vertical-align-center">
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_8-of-12">
+                    <h2 class="slds-text-heading_small slds-text-color_default font-bold">Plan, Validate & Optimize Corporate Travel</h2>
+                    <p class="slds-text-body_small slds-text-color_weak slds-m-top_xx-small">
+                        Every trip has a purpose. Every rupee has a reason. Real-time policy checking and AI spend intelligence before you submit.
+                    </p>
+                </div>
+                <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12 slds-text-align_right">
+                    <span class="slds-badge slds-theme_success">AI Spend Intelligence Active</span>
+                </div>
+            </div>
+
+            <!-- Existing Requests Table -->
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Loading requests..." size="medium"></lightning-spinner>
+            </template>
+
+            <template if:false={isLoading}>
+                <template if:true={hasRequests}>
+                    <div class="slds-table_header-fixed_container slds-scrollable_x">
+                        <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped">
+                            <thead>
+                                <tr class="slds-line-height_reset">
+                                    <th scope="col">Request #</th>
+                                    <th scope="col">Route</th>
+                                    <th scope="col">Travel Dates</th>
+                                    <th scope="col">Purpose</th>
+                                    <th scope="col">Estimated Spend</th>
+                                    <th scope="col">Potential Savings</th>
+                                    <th scope="col">Policy Status</th>
+                                    <th scope="col">Approval Status</th>
+                                    <th scope="col">Trip Status</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template for:each={myRequests} for:item="req">
+                                    <tr key={req.Id}>
+                                        <td class="font-bold">{req.Name}</td>
+                                        <td>{req.Origin__c} ➔ {req.Destination__c}</td>
+                                        <td>{req.Departure_Date__c} to {req.Return_Date__c}</td>
+                                        <td>{req.Travel_Purpose__c}</td>
+                                        <td class="font-bold">₹{req.Total_Estimated_Cost__c}</td>
+                                        <td class="slds-text-color_success font-bold">₹{req.Potential_Savings__c}</td>
+                                        <td>
+                                            <span class={req.policyClass}>{req.Policy_Validation_Status__c}</span>
+                                        </td>
+                                        <td>
+                                            <span class={req.approvalClass}>{req.Approval_Status__c}</span>
+                                        </td>
+                                        <td>
+                                            <span class="slds-badge">{req.Trip_Status__c}</span>
+                                        </td>
+                                        <td>
+                                            <template if:true={req.isDraft}>
+                                                <lightning-button label="Submit" size="small" variant="brand-outline" data-id={req.Id} onclick={handleSubmitExisting}></lightning-button>
+                                            </template>
+                                            <template if:false={req.isDraft}>
+                                                <lightning-button label="View Details" size="small" variant="neutral" data-id={req.Id} onclick={handleViewDetails}></lightning-button>
+                                            </template>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </template>
+                <template if:false={hasRequests}>
+                    <div class="slds-illustration slds-illustration_small slds-p-around_large slds-text-align_center">
+                        <p class="slds-text-heading_small slds-text-color_weak">No travel requests found. Create your first travel request above!</p>
+                    </div>
+                </template>
+            </template>
+        </div>
+
+        <!-- Create / Edit Modal -->
+        <template if:true={isModalOpen}>
+            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_medium" aria-modal="true">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={handleCloseModal}>
+                            <lightning-icon icon-name="utility:close" alternative-text="close" size="small"></lightning-icon>
+                        </button>
+                        <h2 class="slds-modal__title slds-hyphenate">Create New Travel Request</h2>
+                        <p class="slds-m-top_x-small slds-text-color_weak">Complete travel details and run pre-submission AI optimization</p>
+                    </header>
+
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <div class="slds-grid slds-wrap slds-gutters">
+                            <!-- Basic Trip Info -->
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-m-bottom_small">
+                                <lightning-input label="Origin" value={form.Origin__c} data-field="Origin__c" onchange={handleInputChange} required></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-m-bottom_small">
+                                <lightning-input label="Destination" value={form.Destination__c} data-field="Destination__c" onchange={handleInputChange} required></lightning-input>
+                            </div>
+
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-m-bottom_small">
+                                <lightning-input type="date" label="Departure Date" value={form.Departure_Date__c} data-field="Departure_Date__c" onchange={handleInputChange} required></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-m-bottom_small">
+                                <lightning-input type="date" label="Return Date" value={form.Return_Date__c} data-field="Return_Date__c" onchange={handleInputChange} required></lightning-input>
+                            </div>
+
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-m-bottom_small">
+                                <lightning-combobox label="Travel Purpose" value={form.Travel_Purpose__c} options={purposeOptions} data-field="Travel_Purpose__c" onchange={handleInputChange} required></lightning-combobox>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-m-bottom_small">
+                                <lightning-combobox label="Department Budget" value={form.Budget__c} options={budgetOptions} data-field="Budget__c" onchange={handleInputChange} required></lightning-combobox>
+                            </div>
+
+                            <!-- Estimated Costs (INR) -->
+                            <div class="slds-col slds-size_1-of-1 slds-m-top_small slds-m-bottom_x-small">
+                                <h3 class="slds-text-title_bold slds-text-color_default">Estimated Expenditures (₹ INR)</h3>
+                            </div>
+
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12 slds-m-bottom_small">
+                                <lightning-input type="number" label="Flight / Transport (₹)" value={form.Estimated_Transport_Cost__c} data-field="Estimated_Transport_Cost__c" onchange={handleInputChange} formatter="currency" step="100"></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12 slds-m-bottom_small">
+                                <lightning-input type="number" label="Hotel / Accommodation (₹)" value={form.Estimated_Accommodation_Cost__c} data-field="Estimated_Accommodation_Cost__c" onchange={handleInputChange} formatter="currency" step="100"></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_4-of-12 slds-m-bottom_small">
+                                <lightning-input type="number" label="Food & Meals (₹)" value={form.Estimated_Food_Cost__c} data-field="Estimated_Food_Cost__c" onchange={handleInputChange} formatter="currency" step="100"></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-m-bottom_small">
+                                <lightning-input type="number" label="Local Transport / Cabs (₹)" value={form.Estimated_Local_Transport_Cost__c} data-field="Estimated_Local_Transport_Cost__c" onchange={handleInputChange} formatter="currency" step="100"></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-m-bottom_small">
+                                <lightning-input type="number" label="Other Incidentals (₹)" value={form.Estimated_Other_Cost__c} data-field="Estimated_Other_Cost__c" onchange={handleInputChange} formatter="currency" step="100"></lightning-input>
+                            </div>
+
+                            <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                                <div class="slds-box slds-theme_shade slds-grid slds-grid_align-spread slds-grid_vertical-align-center">
+                                    <span class="slds-text-heading_small font-bold">Total Estimated Budget:</span>
+                                    <span class="slds-text-heading_medium font-bold slds-text-color_brand">₹{computedTotal}</span>
+                                </div>
+                            </div>
+
+                            <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                                <lightning-textarea label="Business Justification" value={form.Business_Justification__c} data-field="Business_Justification__c" onchange={handleInputChange} placeholder="Why is this trip essential to company goals?" required></lightning-textarea>
+                            </div>
+
+                            <!-- Live Pre-Check Button -->
+                            <div class="slds-col slds-size_1-of-1 slds-m-bottom_medium slds-text-align_center">
+                                <lightning-button label="Run AI Spend & Policy Pre-Check" variant="brand-outline" icon-name="utility:magicwand" onclick={handleRunPreCheck} disabled={isPreChecking}></lightning-button>
+                            </div>
+
+                            <!-- Pre-Check Intelligence Results -->
+                            <template if:true={previewResults}>
+                                <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                                    <div class="slds-box slds-box_small slds-theme_default slds-border_top slds-border_bottom slds-border_left slds-border_right">
+                                        <div class="slds-grid slds-grid_align-spread slds-m-bottom_x-small">
+                                            <h4 class="font-bold slds-text-title_caps">Policy & Budget Intelligence</h4>
+                                            <span class={previewPolicyBadgeClass}>{previewResults.policyResult.status}</span>
+                                        </div>
+
+                                        <p class="slds-text-body_small slds-m-bottom_small">{previewPolicyDetails}</p>
+
+                                        <template if:true={previewBudgetWarning}>
+                                            <div class="slds-notify slds-notify_alert slds-alert_warning slds-m-bottom_small" role="alert">
+                                                <span>{previewResults.budgetResult.message}</span>
+                                            </div>
+                                        </template>
+
+                                        <!-- AI Savings Opportunity -->
+                                        <div class="slds-box slds-theme_shade slds-m-top_x-small">
+                                            <div class="slds-grid slds-grid_align-spread">
+                                                <div>
+                                                    <span class="slds-badge slds-theme_success">AI Optimization</span>
+                                                    <span class="slds-m-left_x-small font-bold">Potential Savings: ₹{previewResults.aiResult.totalPotentialSavings}</span>
+                                                </div>
+                                                <div class="font-bold">Optimized Total: ₹{previewResults.aiResult.recommendedTotal}</div>
+                                            </div>
+                                            <p class="slds-text-body_small slds-m-top_x-small">{previewResults.aiResult.executiveSummary}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <footer class="slds-modal__footer">
+                        <lightning-button label="Cancel" onclick={handleCloseModal} class="slds-m-right_x-small"></lightning-button>
+                        <lightning-button label="Save as Draft" variant="neutral" onclick={handleSaveDraft} class="slds-m-right_x-small"></lightning-button>
+                        <lightning-button label="Submit for Approval" variant="brand" onclick={handleSaveAndSubmit}></lightning-button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </template>
+    </lightning-card>
+</template>

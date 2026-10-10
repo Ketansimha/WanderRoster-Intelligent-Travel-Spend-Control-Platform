@@ -1,0 +1,175 @@
+<template>
+    <lightning-card title="Finance Review & Reimbursement Workspace" icon-name="custom:custom41">
+        <div slot="actions">
+            <lightning-button-icon icon-name="utility:refresh" alternative-text="Refresh" onclick={loadReports}></lightning-button-icon>
+        </div>
+
+        <div class="slds-p-around_medium">
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Loading expense reports..." size="medium"></lightning-spinner>
+            </template>
+
+            <template if:false={isLoading}>
+                <!-- Reports List View -->
+                <template if:false={selectedReport}>
+                    <template if:true={hasReports}>
+                        <div class="slds-table_header-fixed_container slds-scrollable_x">
+                            <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped">
+                                <thead>
+                                    <tr class="slds-line-height_reset">
+                                        <th scope="col">Report #</th>
+                                        <th scope="col">Employee</th>
+                                        <th scope="col">Trip</th>
+                                        <th scope="col">Claimed Amount</th>
+                                        <th scope="col">Approved Amount</th>
+                                        <th scope="col">Finance Review Status</th>
+                                        <th scope="col">Reimbursement Status</th>
+                                        <th scope="col">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template for:each={reports} for:item="rep">
+                                        <tr key={rep.Id}>
+                                            <td class="font-bold">{rep.Name}</td>
+                                            <td>{rep.Employee__r.Name}</td>
+                                            <td>{rep.Travel_Request__r.Name} ({rep.Travel_Request__r.Destination__c})</td>
+                                            <td class="font-bold">₹{rep.Total_Claimed_Amount__c}</td>
+                                            <td class="slds-text-color_success font-bold">₹{rep.Total_Approved_Amount__c}</td>
+                                            <td><span class="slds-badge">{rep.Finance_Review_Status__c}</span></td>
+                                            <td><span class={rep.reimbursementBadgeClass}>{rep.Reimbursement_Status__c}</span></td>
+                                            <td>
+                                                <lightning-button label="Audit Expenses" size="small" variant="brand" data-id={rep.Id} onclick={handleSelectReport}></lightning-button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </template>
+                    <template if:false={hasReports}>
+                        <div class="slds-illustration slds-illustration_small slds-text-align_center slds-p-around_large">
+                            <p class="slds-text-color_weak">No expense reports currently pending finance audit.</p>
+                        </div>
+                    </template>
+                </template>
+
+                <!-- Detailed Audit View of Selected Report -->
+                <template if:true={selectedReport}>
+                    <div class="slds-m-bottom_medium">
+                        <lightning-button label="← Back to All Reports" variant="neutral" icon-name="utility:back" onclick={handleBackToList}></lightning-button>
+                    </div>
+
+                    <!-- Header Summary Card -->
+                    <div class="slds-box slds-theme_shade slds-m-bottom_medium">
+                        <div class="slds-grid slds-grid_align-spread slds-grid_vertical-align-center">
+                            <div>
+                                <h2 class="slds-text-heading_medium font-bold">{selectedReport.Name}</h2>
+                                <p class="slds-text-body_small">Employee: <b>{selectedReport.Employee__r.Name}</b> | Trip: <b>{selectedReport.Travel_Request__r.Name}</b></p>
+                            </div>
+                            <div class="slds-text-align_right">
+                                <span class="slds-badge slds-m-right_x-small">Review: {selectedReport.Finance_Review_Status__c}</span>
+                                <span class={selectedReport.reimbursementBadgeClass}>Payout: {selectedReport.Reimbursement_Status__c}</span>
+                            </div>
+                        </div>
+
+                        <div class="slds-grid slds-wrap slds-gutters slds-m-top_small">
+                            <div class="slds-col slds-size_1-of-3">
+                                <span>Claimed: </span><b class="slds-text-heading_small">₹{selectedReport.Total_Claimed_Amount__c}</b>
+                            </div>
+                            <div class="slds-col slds-size_1-of-3">
+                                <span>Approved: </span><b class="slds-text-heading_small slds-text-color_success">₹{selectedReport.Total_Approved_Amount__c}</b>
+                            </div>
+                            <div class="slds-col slds-size_1-of-3">
+                                <span>Rejected: </span><b class="slds-text-heading_small slds-text-color_error">₹{selectedReport.Total_Rejected_Amount__c}</b>
+                            </div>
+                        </div>
+
+                        <!-- Reimbursement Lifecycle Actions -->
+                        <div class="slds-m-top_medium slds-grid slds-grid_align-end">
+                            <template if:true={isReadyForPayment}>
+                                <lightning-button label="Confirm Payment (Mark as Paid)" variant="brand" icon-name="utility:money" onclick={handleMarkPaid}></lightning-button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Line Items List -->
+                    <h3 class="slds-text-heading_small font-bold slds-m-bottom_small">Itemized Expense Lines & Verification Results</h3>
+
+                    <template for:each={selectedReportItems} for:item="item">
+                        <div key={item.Id} class="slds-card slds-card_boundary slds-p-around_medium slds-m-bottom_small">
+                            <div class="slds-grid slds-grid_align-spread slds-grid_vertical-align-center slds-m-bottom_x-small">
+                                <div>
+                                    <span class="font-bold slds-text-heading_small">{item.Name}</span>
+                                    <span class="slds-badge slds-m-left_x-small">{item.Expense_Category__c}</span>
+                                    <span class="slds-m-left_small font-bold">{item.Merchant_Name__c}</span>
+                                </div>
+                                <div>
+                                    <span class={item.reviewBadgeClass}>{item.Review_Status__c}</span>
+                                    <span class={item.verificationBadgeClass}>{item.Receipt_Verification_Status__c}</span>
+                                    <span class="slds-badge slds-badge_lightest slds-m-left_x-small">Risk: {item.Anomaly_Risk_Score__c}%</span>
+                                </div>
+                            </div>
+
+                            <div class="slds-grid slds-wrap slds-gutters slds-text-body_small slds-m-bottom_x-small">
+                                <div class="slds-col slds-size_1-of-4">
+                                    <span class="slds-text-color_weak">Claimed:</span>
+                                    <div class="font-bold">₹{item.Claimed_Amount__c}</div>
+                                </div>
+                                <div class="slds-col slds-size_1-of-4">
+                                    <span class="slds-text-color_weak">Receipt Amount:</span>
+                                    <div class="font-bold">₹{item.Receipt_Amount__c}</div>
+                                </div>
+                                <div class="slds-col slds-size_1-of-4">
+                                    <span class="slds-text-color_weak">Approved Amount:</span>
+                                    <div class="font-bold slds-text-color_success">₹{item.Approved_Amount__c}</div>
+                                </div>
+                                <div class="slds-col slds-size_1-of-4">
+                                    <span class="slds-text-color_weak">Receipt #:</span>
+                                    <div>{item.Receipt_Number__c}</div>
+                                </div>
+                            </div>
+
+                            <!-- Verification Message -->
+                            <div class="slds-box slds-box_x-small slds-theme_shade slds-m-bottom_small">
+                                <span class="font-bold">AI Explanation: </span>
+                                <span>{item.AI_Explanation__c}</span>
+                            </div>
+
+                            <!-- Line Item Decision Buttons -->
+                            <div class="slds-grid slds-grid_align-end">
+                                <lightning-button label="Reject Line" variant="destructive-text" data-id={item.Id} data-action="Rejected" onclick={handleOpenLineItemModal} class="slds-m-right_x-small"></lightning-button>
+                                <lightning-button label="Partial Approve" variant="neutral" data-id={item.Id} data-action="Partial Approved" onclick={handleOpenLineItemModal} class="slds-m-right_x-small"></lightning-button>
+                                <lightning-button label="Approve Full" variant="brand" data-id={item.Id} data-action="Approved" onclick={handleOpenLineItemModal}></lightning-button>
+                            </div>
+                        </div>
+                    </template>
+                </template>
+            </template>
+        </div>
+
+        <!-- Line Item Determination Modal -->
+        <template if:true={isItemModalOpen}>
+            <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open" aria-modal="true">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={handleCloseItemModal}>
+                            <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
+                        </button>
+                        <h2 class="slds-modal__title slds-hyphenate">{itemModalTitle}</h2>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <template if:true={isPartialApprove}>
+                            <lightning-input type="number" label="Approved Amount (₹)" value={modalApprovedAmount} onchange={handleApprovedAmountChange} formatter="currency" step="10" required></lightning-input>
+                        </template>
+                        <lightning-textarea label="Review Comments" value={modalComments} onchange={handleCommentsChange} placeholder="Enter reason or audit comments..."></lightning-textarea>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <lightning-button label="Cancel" onclick={handleCloseItemModal} class="slds-m-right_x-small"></lightning-button>
+                        <lightning-button label="Confirm" variant="brand" onclick={handleConfirmItemReview}></lightning-button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </template>
+    </lightning-card>
+</template>

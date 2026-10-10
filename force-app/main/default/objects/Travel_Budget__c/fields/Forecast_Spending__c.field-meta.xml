@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Forecast_Spending__c</fullName>
+    <defaultValue>0</defaultValue>
+    <description>Forecast total spending = Recorded Expenses + Approved Commitments + Pending Commitments</description>
+    <externalId>false</externalId>
+    <label>Forecast Spending (INR)</label>
+    <precision>18</precision>
+    <required>false</required>
+    <scale>2</scale>
+    <trackHistory>true</trackHistory>
+    <type>Currency</type>
+</CustomField>

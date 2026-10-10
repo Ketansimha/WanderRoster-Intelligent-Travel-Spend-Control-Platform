@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Travel_Request__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>Associated travel request</description>
+    <externalId>false</externalId>
+    <label>Travel Request</label>
+    <referenceTo>Travel_Request__c</referenceTo>
+    <relationshipLabel>Expense Items</relationshipLabel>
+    <relationshipName>Expense_Items</relationshipName>
+    <required>false</required>
+    <trackHistory>true</trackHistory>
+    <type>Lookup</type>
+</CustomField>

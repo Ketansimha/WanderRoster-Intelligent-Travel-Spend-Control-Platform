@@ -1,0 +1,72 @@
+<template>
+    <div class="slds-box slds-box_small slds-theme_default slds-m-bottom_small">
+        <div class="slds-grid slds-grid_align-spread slds-grid_vertical-align-center slds-m-bottom_x-small">
+            <div>
+                <span class="font-bold slds-text-heading_small">{item.Name}</span>
+                <span class="slds-badge slds-m-left_x-small">{item.Expense_Category__c}</span>
+                <span class="slds-m-left_x-small font-bold">{item.Merchant_Name__c}</span>
+            </div>
+            <div>
+                <span class={complianceBadgeClass}>{item.Receipt_Compliance_Status__c}</span>
+                <span class={verificationBadgeClass}>{item.Receipt_Verification_Status__c}</span>
+                <span class="slds-badge slds-badge_lightest slds-m-left_x-small font-bold">Risk: {item.Anomaly_Risk_Score__c}%</span>
+            </div>
+        </div>
+
+        <!-- Financial Comparison Grid -->
+        <div class="slds-grid slds-wrap slds-gutters slds-text-body_small slds-m-bottom_x-small">
+            <div class="slds-col slds-size_1-of-2 slds-medium-size_3-of-12">
+                <span class="slds-text-color_weak">Claimed Amount:</span>
+                <div class="font-bold">₹{item.Claimed_Amount__c}</div>
+            </div>
+            <div class="slds-col slds-size_1-of-2 slds-medium-size_3-of-12">
+                <span class="slds-text-color_weak">Receipt Amount:</span>
+                <div class="font-bold">₹{item.Receipt_Amount__c}</div>
+            </div>
+            <div class="slds-col slds-size_1-of-2 slds-medium-size_3-of-12">
+                <span class="slds-text-color_weak">Receipt #:</span>
+                <div>{item.Receipt_Number__c}</div>
+            </div>
+            <div class="slds-col slds-size_1-of-2 slds-medium-size_3-of-12">
+                <span class="slds-text-color_weak">Compliance Deadline:</span>
+                <div>{item.Receipt_Deadline__c}</div>
+            </div>
+        </div>
+
+        <!-- Discrepancy or Duplicate Warning Alert -->
+        <template if:true={isFlagged}>
+            <div class="slds-notify slds-notify_alert slds-alert_error slds-m-bottom_x-small" role="alert">
+                <lightning-icon icon-name="utility:error" size="x-small" variant="inverse" class="slds-m-right_x-small"></lightning-icon>
+                <span>{item.AI_Explanation__c}</span>
+            </div>
+        </template>
+        <template if:false={isFlagged}>
+            <div class="slds-box slds-box_x-small slds-theme_shade slds-m-bottom_x-small">
+                <span class="slds-text-color_success font-bold">✓ AI Verification: </span>
+                <span class="slds-text-body_small">{item.AI_Explanation__c}</span>
+            </div>
+        </template>
+
+        <!-- Receipt File Upload & Attach -->
+        <div class="slds-grid slds-grid_align-spread slds-grid_vertical-align-center slds-m-top_x-small">
+            <div>
+                <template if:true={item.Receipt_Attachment_Reference__c}>
+                    <lightning-icon icon-name="doctype:pdf" size="small" class="slds-m-right_xx-small"></lightning-icon>
+                    <span class="slds-text-body_small font-bold slds-text-color_success">Receipt Attached</span>
+                </template>
+                <template if:false={item.Receipt_Attachment_Reference__c}>
+                    <span class="slds-text-body_small slds-text-color_error font-bold">No receipt file uploaded</span>
+                </template>
+            </div>
+            <div>
+                <lightning-file-upload
+                    label="Attach Receipt"
+                    name="fileUploader"
+                    accept=".pdf,.png,.jpg,.jpeg"
+                    record-id={item.Id}
+                    onuploadfinished={handleUploadFinished}>
+                </lightning-file-upload>
+            </div>
+        </div>
+    </div>
+</template>

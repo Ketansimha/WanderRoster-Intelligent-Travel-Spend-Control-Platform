@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Late_Submission_Reason__c</fullName>
+    <description>Employee explanation if receipt is submitted after the 24-hour compliance deadline</description>
+    <externalId>false</externalId>
+    <label>Late Submission Reason</label>
+    <length>32768</length>
+    <trackHistory>true</trackHistory>
+    <type>LongTextArea</type>
+    <visibleLines>2</visibleLines>
+</CustomField>

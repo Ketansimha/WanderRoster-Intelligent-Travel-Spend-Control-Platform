@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Receipt_Verification_Status__c</fullName>
+    <description>Result of verification algorithm checking receipt match, duplicates, and policy</description>
+    <externalId>false</externalId>
+    <label>Receipt Verification Status</label>
+    <required>false</required>
+    <trackHistory>true</trackHistory>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value><fullName>Pending Verification</fullName><default>true</default><label>Pending Verification</label></value>
+            <value><fullName>Verified</fullName><default>false</default><label>Verified</label></value>
+            <value><fullName>Discrepancy Flagged</fullName><default>false</default><label>Discrepancy Flagged</label></value>
+            <value><fullName>Duplicate Suspected</fullName><default>false</default><label>Duplicate Suspected</label></value>
+            <value><fullName>Policy Limit Exceeded</fullName><default>false</default><label>Policy Limit Exceeded</label></value>
+            <value><fullName>Human Review Required</fullName><default>false</default><label>Human Review Required</label></value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

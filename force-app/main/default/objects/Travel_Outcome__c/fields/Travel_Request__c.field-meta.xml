@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Travel_Request__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>Completed travel request evaluated</description>
+    <externalId>false</externalId>
+    <label>Travel Request</label>
+    <referenceTo>Travel_Request__c</referenceTo>
+    <relationshipLabel>Travel Outcomes</relationshipLabel>
+    <relationshipName>Travel_Outcomes</relationshipName>
+    <required>false</required>
+    <trackHistory>true</trackHistory>
+    <type>Lookup</type>
+</CustomField>

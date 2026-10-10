@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Remaining_Budget__c</fullName>
+    <description>Remaining available budget after approved commitments and recorded expenses</description>
+    <externalId>false</externalId>
+    <formula>Allocated_Budget__c - (Approved_Commitments__c + Recorded_Expenses__c)</formula>
+    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
+    <label>Remaining Budget (INR)</label>
+    <precision>18</precision>
+    <required>false</required>
+    <scale>2</scale>
+    <type>Currency</type>
+</CustomField>
